@@ -1,0 +1,37 @@
+# Nome do workflow (aparece na aba Actions do GitHub)
+name: CI Colhe+
+
+# Define quando o pipeline será executado
+on:
+  push: # roda sempre que houver um push 
+    branches: [ "main", "dev" ] # apenas se o push for nessas branches
+
+# Define os "jobs" 
+jobs:
+  build: # nome do job 
+    runs-on: ubuntu-latest # máquina virtual onde o job será executado 
+
+    steps: # sequência de passos que serão executados
+
+      # Etapa 1: clonar o repositório na máquina do GitHub Actions
+      - name: Clonar repositório
+        uses: actions/checkout@v3 # action pronta que faz o clone do código
+
+      # Etapa 2: configurar o ambiente Java
+      - name: Configurar Java
+        uses: actions/setup-java@v3 # instala/configura o Java na máquina
+        with:
+          distribution: 'temurin' # distribuição do Java (OpenJDK)
+          java-version: '17' # versão do Java usada no projeto
+
+      # Etapa 3: build do projeto com Maven
+      - name: Build com Maven
+        run: mvn clean install 
+        # limpa builds antigos, baixa dependências, compila e gera o artefato (.jar)
+        # geralmente também executa testes automaticamente
+
+      # Etapa 4: execução explícita dos testes
+      - name: Rodar testes
+        run: mvn test
+        # roda os testes automatizados (JUnit, etc)
+        # pode ser redundante, pois o 'install' já costuma rodar testes
