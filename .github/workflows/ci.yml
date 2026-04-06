@@ -1,37 +1,42 @@
-# Nome do workflow (aparece na aba Actions do GitHub)
 name: CI Colhe+
 
-# Define quando o pipeline será executado
 on:
-  push: # roda sempre que houver um push 
-    branches: [ "main", "dev" ] # apenas se o push for nessas branches
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
 
-# Define os "jobs" 
 jobs:
-  build: # nome do job 
-    runs-on: ubuntu-latest # máquina virtual onde o job será executado 
+  build:
+    runs-on: ubuntu-latest
 
-    steps: # sequência de passos que serão executados
-
-      # Etapa 1: clonar o repositório na máquina do GitHub Actions
+    steps:
+      # Etapa 1: clona o repositório
       - name: Clonar repositório
-        uses: actions/checkout@v3 # action pronta que faz o clone do código
+        uses: actions/checkout@v4
 
-      # Etapa 2: configurar o ambiente Java
+      # Etapa 2: configura o Java com cache do Maven embutido
       - name: Configurar Java
-        uses: actions/setup-java@v3 # instala/configura o Java na máquina
+        uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # distribuição do Java (OpenJDK)
-          java-version: '17' # versão do Java usada no projeto
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
 
-      # Etapa 3: build do projeto com Maven
+      # Etapa 3: análise de qualidade com Checkstyle
+      - name: Verificar qualidade do código (Checkstyle)
+        run: mvn checkstyle:check
+        # lê as regras definidas em checkstyle.xml e falha o pipeline
+        # se o código violar padrões de formatação/estilo
+        # ex: nomes de variáveis, tamanho de métodos, imports não usados
+
+      # Etapa 4: compila e gera o .jar SEM rodar testes ainda
       - name: Build com Maven
-        run: mvn clean install 
-        # limpa builds antigos, baixa dependências, compila e gera o artefato (.jar)
-        # geralmente também executa testes automaticamente
+        run: mvn clean package -DskipTests
+        # se o build falhar, você sabe que é problema de compilação
+        # e não de teste ou qualidade
 
-      # Etapa 4: execução explícita dos testes
+      # Etapa 5: roda os testes separadamente
       - name: Rodar testes
         run: mvn test
-        # roda os testes automatizados (JUnit, etc)
-        # pode ser redundante, pois o 'install' já costuma rodar testes
+        # falha aqui = problema de lógica/regra de negócio
