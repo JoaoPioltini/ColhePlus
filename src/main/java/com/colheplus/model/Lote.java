@@ -1,8 +1,13 @@
 package com.colheplus.model;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 
-public class Lote{
+@Entity
+public class Lote {
 
+    @Id
     private Long id;
+    
     private String produto;
     private Double volumeDisponivel;
     private Double volumeMinimo;
