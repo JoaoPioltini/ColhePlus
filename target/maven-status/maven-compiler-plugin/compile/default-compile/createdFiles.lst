@@ -1,4 +1,8 @@
+com/colheplus/controller/LoteController.class
+com/colheplus/model/Pedido.class
 com/colheplus/App.class
+com/colheplus/controller/PedidoController.class
 com/colheplus/controller/HelloController.class
 com/colheplus/model/Lote.class
-com/colheplus/controller/LoteController.class
+com/colheplus/service/LoteService.class
+com/colheplus/service/PedidoService.class
