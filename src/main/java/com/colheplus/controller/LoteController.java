@@ -3,9 +3,15 @@ package com.colheplus.controller;
 import com.colheplus.model.Lote;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @RestController
 public class LoteController {
+    private List<Lote> lotes = new ArrayList<>();
 
     @GetMapping("/lote")
     public Lote getLote() {
@@ -20,4 +26,16 @@ public class LoteController {
 
         return lote;
     }
+
+    @GetMapping("/lotes")
+    public List<Lote> listarLotes(){
+        return lotes;
+    }
+
+    @PostMapping("/lote")
+    public Lote criarLote(@RequestBody Lote lote){
+        lotes.add(lote);
+        return lote;
+    }
+
 }
