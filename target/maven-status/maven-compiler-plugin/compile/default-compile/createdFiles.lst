@@ -1,2 +1,4 @@
 com/colheplus/App.class
 com/colheplus/controller/HelloController.class
+com/colheplus/model/Lote.class
+com/colheplus/controller/LoteController.class
