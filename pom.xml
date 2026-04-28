@@ -49,8 +49,13 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
-        <!-- LOMBOK (opcional, mas ajuda MUITO) -->
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+   
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

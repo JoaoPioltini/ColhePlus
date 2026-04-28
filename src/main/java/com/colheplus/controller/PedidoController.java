@@ -2,6 +2,7 @@ package com.colheplus.controller;
 
 import com.colheplus.model.Pedido;
 import com.colheplus.service.PedidoService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class PedidoController {
     }
 
     @PostMapping("/pedido")
-    public Pedido criarPedido(@RequestBody Pedido pedido) {
+    public Pedido criarPedido(@RequestBody @Valid Pedido pedido) {
         return pedidoService.criarPedido(pedido);
     }
 

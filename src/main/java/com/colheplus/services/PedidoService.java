@@ -21,28 +21,42 @@ public class PedidoService {
 
     public Pedido criarPedido(Pedido pedido) {
 
-        // salva o pedido no banco
-        pedidoRepository.save(pedido);
-
-        // busca o lote correspondente
-        Lote lote = loteRepository.findById(pedido.getLoteId()).orElse(null);
-
-        if (lote != null) {
-
-            double soma = 0;
-
-            for (Pedido p : pedidoRepository.findAll()) {
-                if (p.getLoteId().equals(lote.getId())) {
-                    soma += p.getQuantidade();
-                }
-            }
-
-            if (soma >= lote.getVolumeMinimo()) {
-                lote.setStatus("ATIVADO");
-                loteRepository.save(lote);
-            }
+        // validação básica (evita null pointer que você teve)
+        if (pedido.getLoteId() == null) {
+            throw new RuntimeException("LoteId não pode ser null");
         }
-        return pedido;
+
+        // 1. buscar o lote
+        Lote lote = loteRepository.findById(pedido.getLoteId())
+                .orElseThrow(() -> new RuntimeException("Lote não encontrado"));
+
+        // 2. buscar pedidos do lote
+        List<Pedido> pedidosDoLote = pedidoRepository.findByLoteId(lote.getId());
+
+        // 3. calcular soma atual
+        double soma = 0;
+        for (Pedido p : pedidosDoLote) {
+            soma += p.getQuantidade();
+        }
+
+        // 4. soma futura
+        double somaFutura = soma + pedido.getQuantidade();
+
+        // 5. bloquear excesso
+        if (somaFutura > lote.getVolumeDisponivel()) {
+            throw new RuntimeException("Pedido ultrapassa o volume disponível do lote");
+        }
+
+        // 6. salvar pedido
+        Pedido pedidoSalvo = pedidoRepository.save(pedido);
+
+        // 7. ativar lote
+        if (somaFutura >= lote.getVolumeMinimo()) {
+            lote.setStatus("ATIVADO");
+            loteRepository.save(lote);
+        }
+
+        return pedidoSalvo;
     }
 
     public List<Pedido> listarPedidos() {
