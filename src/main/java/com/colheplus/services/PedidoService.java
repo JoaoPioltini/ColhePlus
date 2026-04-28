@@ -2,47 +2,50 @@ package com.colheplus.service;
 
 import com.colheplus.model.Lote;
 import com.colheplus.model.Pedido;
+import com.colheplus.repository.LoteRepository;
+import com.colheplus.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class PedidoService {
 
-    private List<Pedido> pedidos = new ArrayList<>();
-    private final LoteService loteService;
+    private final PedidoRepository pedidoRepository;
+    private final LoteRepository loteRepository;
 
-    public PedidoService(LoteService loteService) {
-        this.loteService = loteService;
+    public PedidoService(PedidoRepository pedidoRepository, LoteRepository loteRepository) {
+        this.pedidoRepository = pedidoRepository;
+        this.loteRepository = loteRepository;
     }
 
     public Pedido criarPedido(Pedido pedido) {
 
-        pedidos.add(pedido);
+        // salva o pedido no banco
+        pedidoRepository.save(pedido);
 
-        for (Lote lote : loteService.getLotes()) {
+        // busca o lote correspondente
+        Lote lote = loteRepository.findById(pedido.getLoteId()).orElse(null);
 
-            if (lote.getId().equals(pedido.getLoteId())) {
+        if (lote != null) {
 
-                double soma = 0;
+            double soma = 0;
 
-                for (Pedido p : pedidos) {
-                    if (p.getLoteId().equals(lote.getId())) {
-                        soma += p.getQuantidade();
-                    }
-                }
-
-                if (soma >= lote.getVolumeMinimo()) {
-                    lote.setStatus("ATIVADO");
+            for (Pedido p : pedidoRepository.findAll()) {
+                if (p.getLoteId().equals(lote.getId())) {
+                    soma += p.getQuantidade();
                 }
             }
-        }
 
+            if (soma >= lote.getVolumeMinimo()) {
+                lote.setStatus("ATIVADO");
+                loteRepository.save(lote);
+            }
+        }
         return pedido;
     }
 
     public List<Pedido> listarPedidos() {
-        return pedidos;
+        return pedidoRepository.findAll();
     }
 }

@@ -2,6 +2,7 @@ com/colheplus/controller/LoteController.class
 com/colheplus/model/Pedido.class
 com/colheplus/repository/LoteRepository.class
 com/colheplus/App.class
+com/colheplus/repository/PedidoRepository.class
 com/colheplus/controller/PedidoController.class
 com/colheplus/controller/HelloController.class
 com/colheplus/model/Lote.class
