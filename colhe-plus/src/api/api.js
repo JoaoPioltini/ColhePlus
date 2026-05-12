@@ -12,7 +12,7 @@
  *  - AdminController: GET /admin/usuarios, DELETE /admin/usuarios/:id, PATCH /admin/lotes/:id/desativar
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 // ─── Utilitário de fetch ──────────────────────────────────────────────────────
 
@@ -23,15 +23,47 @@ async function request(method, path, body = null, token = null) {
   const options = { method, headers };
   if (body) options.body = JSON.stringify(body);
 
-  const res = await fetch(`${BASE_URL}${path}`, options);
+  let res;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, options);
+  } catch {
+    throw new Error("Não foi possível conectar ao backend. Verifique se ele está rodando.");
+  }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: "Erro desconhecido" }));
-    throw new Error(error.message || `Erro ${res.status}`);
+    const error = await parseError(res);
+    throw new Error(error);
   }
 
   if (res.status === 204) return null;
   return res.json();
+}
+
+async function parseError(res) {
+  const fallback = statusMessage(res.status);
+  const contentType = res.headers.get("content-type") || "";
+
+  if (contentType.includes("application/json") || contentType.includes("application/problem+json")) {
+    const data = await res.json().catch(() => null);
+    const detail = data?.mensagem || data?.message || data?.detail || data?.error || data?.title;
+    return `${fallback}: ${detail || "o backend não retornou detalhes."}`;
+  }
+
+  const text = await res.text().catch(() => "");
+  return `${fallback}${text ? `: ${text}` : "."}`;
+}
+
+function statusMessage(status) {
+  const messages = {
+    400: "Dados inválidos (400)",
+    401: "Não autorizado (401)",
+    403: "Acesso negado (403)",
+    404: "Recurso não encontrado (404)",
+    405: "Método não permitido (405)",
+    409: "Conflito (409)",
+    500: "Erro interno do servidor (500)",
+  };
+  return messages[status] || `Erro ${status}`;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────

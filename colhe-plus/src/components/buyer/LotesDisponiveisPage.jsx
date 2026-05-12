@@ -166,6 +166,11 @@ function FazerPedidoModal({ lote, isOpen, onClose, onSuccess }) {
 
 // ─── Card de lote para comprador ──────────────────────────────────────────────
 function LotePublicoCard({ lote, onFazerPedido }) {
+  const totalDisponivel = lote.volumeDisponivelKg || 0;
+  const volumeAgrupado = lote.volumeAgrupado || 0;
+  const disponivelCompra = Math.max(totalDisponivel - volumeAgrupado, 0);
+  const podeComprar = lote.status === "ABERTO" && disponivelCompra > 0;
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4">
       <div className="flex items-start justify-between">
@@ -180,8 +185,11 @@ function LotePublicoCard({ lote, onFazerPedido }) {
 
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div>
-          <p className="text-xs text-gray-500">Disponível</p>
-          <p className="font-semibold">{lote.volumeDisponivelKg?.toLocaleString("pt-BR")} kg</p>
+          <p className="text-xs text-gray-500">Disponível para compra</p>
+          <p className="font-semibold">{disponivelCompra.toLocaleString("pt-BR")} kg</p>
+          <p className="text-xs text-gray-400">
+            de {totalDisponivel.toLocaleString("pt-BR")} kg ofertados
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Preço / kg</p>
@@ -210,8 +218,8 @@ function LotePublicoCard({ lote, onFazerPedido }) {
         </p>
       </div>
 
-      <Button onClick={() => onFazerPedido(lote)} size="sm" fullWidth>
-        Fazer Pedido
+      <Button onClick={() => onFazerPedido(lote)} size="sm" fullWidth disabled={!podeComprar}>
+        {podeComprar ? "Fazer Pedido" : "Indisponível"}
       </Button>
     </div>
   );
