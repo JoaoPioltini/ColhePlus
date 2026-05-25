@@ -49,6 +49,20 @@ The default local datasource is `jdbc:postgresql://localhost:5432/colheplus` wit
 `colheplus`. Override `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and
 `SPRING_DATASOURCE_PASSWORD` when using another PostgreSQL instance.
 
+## Local Frontend
+
+Run the React SPA from the `colhe-plus` directory after starting the backend API:
+
+```bash
+cd colhe-plus
+npm install
+npm run dev
+```
+
+By default, Vite serves the frontend at `http://localhost:5173`. Set
+`VITE_API_URL=http://localhost:8080` in `colhe-plus/.env.local` when the backend
+is running on the default local port.
+
 ---
 
 ## 🔁 CI/CD Pipeline
