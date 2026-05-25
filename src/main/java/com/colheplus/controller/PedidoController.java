@@ -1,6 +1,7 @@
 package com.colheplus.controller;
 
 import com.colheplus.model.Pedido;
+import com.colheplus.dto.CodigoRetiradaRequest;
 import com.colheplus.service.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,5 +41,13 @@ public class PedidoController {
             @PathVariable Long id,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
         return pedidoService.cancelarPedido(id, authorization);
+    }
+
+    @PatchMapping("/pedidos/{id}/retirada")
+    public Pedido confirmarRetirada(
+            @PathVariable Long id,
+            @RequestBody CodigoRetiradaRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        return pedidoService.confirmarRetirada(id, request.getCodigo(), authorization);
     }
 }

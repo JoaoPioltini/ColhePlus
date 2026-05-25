@@ -29,6 +29,15 @@ function PedidoCard({ pedido, onCancelar }) {
             Distância: <span className="font-medium text-gray-800">{pedido.distanciaKm?.toFixed(1)} km</span>
           </p>
         )}
+        {pedido.status === "ACEITO" && pedido.tipoEntrega === "RETIRADA" && (
+          <div className="mt-2 rounded-lg border border-green-100 bg-green-50 p-3 text-sm text-gray-700">
+            <p className="font-semibold text-green-800">Dados para retirada</p>
+            <p>Local: {pedido.latitudeRetirada}, {pedido.longitudeRetirada}</p>
+            <p>Horário: {pedido.horarioRetirada || "A combinar com o produtor"}</p>
+            {pedido.instrucoesRetirada && <p>Instruções: {pedido.instrucoesRetirada}</p>}
+            <p className="mt-1 font-semibold">Código: {pedido.codigoRetirada}</p>
+          </div>
+        )}
         <p className="text-xs text-gray-400">
           Criado em: {pedido.dataCriacao ? new Date(pedido.dataCriacao).toLocaleDateString("pt-BR") : "—"}
         </p>

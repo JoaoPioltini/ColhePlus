@@ -26,6 +26,10 @@ function FazerPedidoModal({ lote, isOpen, onClose, onSuccess }) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const ofereceEntrega =
+    lote?.modalidadeEntrega === "ENTREGA" ||
+    lote?.modalidadeEntrega === "RETIRADA_E_ENTREGA" ||
+    (!lote?.modalidadeEntrega && !!lote?.raioMaximoEntregaKm);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -97,7 +101,7 @@ function FazerPedidoModal({ lote, isOpen, onClose, onSuccess }) {
               <button
                 key={tipo}
                 type="button"
-                disabled={tipo === "ENTREGA" && !lote?.taxaFixaEntrega}
+                disabled={tipo === "ENTREGA" && !ofereceEntrega}
                 onClick={() => set("tipoEntrega", tipo)}
                 className={`py-2.5 rounded-xl border-2 text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                   form.tipoEntrega === tipo
@@ -170,6 +174,10 @@ function LotePublicoCard({ lote, onFazerPedido }) {
   const volumeAgrupado = lote.volumeAgrupado || 0;
   const disponivelCompra = Math.max(totalDisponivel - volumeAgrupado, 0);
   const podeComprar = lote.status === "ABERTO" && disponivelCompra > 0;
+  const ofereceEntrega =
+    lote.modalidadeEntrega === "ENTREGA" ||
+    lote.modalidadeEntrega === "RETIRADA_E_ENTREGA" ||
+    (!lote.modalidadeEntrega && !!lote.raioMaximoEntregaKm);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4">
@@ -199,7 +207,7 @@ function LotePublicoCard({ lote, onFazerPedido }) {
         </div>
         <div>
           <p className="text-xs text-gray-500">Entrega</p>
-          <p className="font-semibold">{lote.taxaFixaEntrega ? "Disponível" : "Somente retirada"}</p>
+          <p className="font-semibold">{ofereceEntrega ? "Disponível" : "Somente retirada"}</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">Raio máx.</p>

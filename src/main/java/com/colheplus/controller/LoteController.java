@@ -44,12 +44,16 @@ public class LoteController {
 
     @DeleteMapping("/lotes/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void excluirLote(@PathVariable Long id) {
-        loteService.excluirLote(id);
+    public void excluirLote(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        loteService.excluirLote(id, authorization);
     }
 
     @PatchMapping("/lotes/{id}/cancelar")
-    public Lote cancelarLote(@PathVariable Long id) {
-        return loteService.cancelarLote(id);
+    public Lote cancelarLote(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        return loteService.cancelarLote(id, authorization);
     }
 }

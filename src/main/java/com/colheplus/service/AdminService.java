@@ -13,24 +13,34 @@ public class AdminService {
 
     private final UsuarioRepository usuarioRepository;
     private final LoteService loteService;
+    private final AuthService authService;
 
-    public AdminService(UsuarioRepository usuarioRepository, LoteService loteService) {
+    public AdminService(UsuarioRepository usuarioRepository, LoteService loteService, AuthService authService) {
         this.usuarioRepository = usuarioRepository;
         this.loteService = loteService;
+        this.authService = authService;
     }
 
-    public List<Usuario> listarUsuarios() {
+    public List<Usuario> listarUsuarios(String authorizationHeader) {
+        authService.autenticarComTermo(authorizationHeader, "ADMIN");
         return usuarioRepository.findAll();
     }
 
-    public void excluirUsuario(Long id) {
+    public List<Lote> listarLotes(String authorizationHeader) {
+        authService.autenticarComTermo(authorizationHeader, "ADMIN");
+        return loteService.listarTodosLotes();
+    }
+
+    public void excluirUsuario(Long id, String authorizationHeader) {
+        authService.autenticarComTermo(authorizationHeader, "ADMIN");
         if (!usuarioRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado");
         }
         usuarioRepository.deleteById(id);
     }
 
-    public Lote desativarLote(Long id) {
+    public Lote desativarLote(Long id, String authorizationHeader) {
+        authService.autenticarComTermo(authorizationHeader, "ADMIN");
         return loteService.desativarLote(id);
     }
 }

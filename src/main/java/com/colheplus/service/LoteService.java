@@ -12,6 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class LoteService {
 
+    private static final String RETIRADA = "RETIRADA";
+    private static final String ENTREGA = "ENTREGA";
+    private static final String RETIRADA_E_ENTREGA = "RETIRADA_E_ENTREGA";
+
     private final LoteRepository loteRepository;
     private final AuthService authService;
 
@@ -21,12 +25,10 @@ public class LoteService {
     }
 
     public Lote criarLote(Lote lote, String authorizationHeader) {
+        Usuario usuario = authService.autenticarComTermo(authorizationHeader, "PRODUTOR");
         validarLote(lote);
-        if (authorizationHeader != null) {
-            Usuario usuario = authService.buscarPorAuthorizationHeader(authorizationHeader);
-            lote.setProdutorId(usuario.getId());
-            lote.setProdutorNome(usuario.getNome());
-        }
+        lote.setProdutorId(usuario.getId());
+        lote.setProdutorNome(usuario.getNome());
         if (lote.getStatus() == null) {
             lote.setStatus("ABERTO");
         }
@@ -43,14 +45,21 @@ public class LoteService {
     }
 
     public List<Lote> listarMeusLotes(String authorizationHeader) {
-        Usuario usuario = authService.buscarPorAuthorizationHeader(authorizationHeader);
+        Usuario usuario = authService.autenticarComTermo(authorizationHeader, "PRODUTOR");
         return loteRepository.findAll().stream()
-                .filter(lote -> usuario.getId().equals(lote.getProdutorId()) || lote.getProdutorId() == null)
+                .filter(lote -> usuario.getId().equals(lote.getProdutorId()))
                 .collect(Collectors.toList());
     }
 
-    public Lote cancelarLote(Long id) {
+    public List<Lote> listarTodosLotes() {
+        return loteRepository.findAll();
+    }
+
+    public Lote cancelarLote(Long id, String authorizationHeader) {
+        Usuario usuario = authService.autenticarComTermo(authorizationHeader, "PRODUTOR");
         Lote lote = buscarLote(id);
+        validarProdutorDoLote(lote, usuario);
+        validarLoteAbertoParaAlteracao(lote);
         lote.setStatus("CANCELADO");
         return loteRepository.save(lote);
     }
@@ -61,11 +70,12 @@ public class LoteService {
         return loteRepository.save(lote);
     }
 
-    public void excluirLote(Long id) {
-        if (!loteRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Lote não encontrado");
-        }
-        loteRepository.deleteById(id);
+    public void excluirLote(Long id, String authorizationHeader) {
+        Usuario usuario = authService.autenticarComTermo(authorizationHeader, "PRODUTOR");
+        Lote lote = buscarLote(id);
+        validarProdutorDoLote(lote, usuario);
+        validarLoteAbertoParaAlteracao(lote);
+        loteRepository.delete(lote);
     }
 
     private Lote buscarLote(Long id) {
@@ -77,6 +87,10 @@ public class LoteService {
         if (lote.getProduto() == null || lote.getProduto().trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Produto é obrigatório");
         }
+        lote.setProduto(lote.getProduto().trim());
+        if (lote.getProduto().codePoints().noneMatch(Character::isLetter)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Produto deve conter letras");
+        }
         if (lote.getVolumeDisponivelKg() == null || lote.getVolumeDisponivelKg() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Volume disponível deve ser maior que zero");
         }
@@ -85,6 +99,37 @@ public class LoteService {
         }
         if (lote.getPrecoPorKg() == null || lote.getPrecoPorKg() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Preço por kg deve ser maior que zero");
+        }
+        definirModalidadePadrao(lote);
+        if (!RETIRADA.equals(lote.getModalidadeEntrega()) && !ENTREGA.equals(lote.getModalidadeEntrega())
+                && !RETIRADA_E_ENTREGA.equals(lote.getModalidadeEntrega())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Modalidade de entrega inválida");
+        }
+        if (aceitaEntrega(lote) && (lote.getTaxaFixaEntrega() == null || lote.getTaxaFixaEntrega() < 0
+                || lote.getRaioMaximoEntregaKm() == null || lote.getRaioMaximoEntregaKm() <= 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Entrega exige taxa fixa e raio máximo válidos");
+        }
+    }
+
+    private void definirModalidadePadrao(Lote lote) {
+        if (lote.getModalidadeEntrega() == null || lote.getModalidadeEntrega().trim().isEmpty()) {
+            lote.setModalidadeEntrega(lote.getRaioMaximoEntregaKm() == null ? RETIRADA : RETIRADA_E_ENTREGA);
+        }
+    }
+
+    private boolean aceitaEntrega(Lote lote) {
+        return ENTREGA.equals(lote.getModalidadeEntrega()) || RETIRADA_E_ENTREGA.equals(lote.getModalidadeEntrega());
+    }
+
+    private void validarProdutorDoLote(Lote lote, Usuario usuario) {
+        if (!usuario.getId().equals(lote.getProdutorId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Lote pertence a outro produtor");
+        }
+    }
+
+    private void validarLoteAbertoParaAlteracao(Lote lote) {
+        if (!"ABERTO".equals(lote.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Apenas lotes abertos podem ser alterados");
         }
     }
 }

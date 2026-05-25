@@ -16,8 +16,11 @@ public class Lote {
     private Double volumeDisponivelKg;
     private Double volumeMinimoViavelKg;
     private Double precoPorKg;
+    private String modalidadeEntrega;
     private Double taxaFixaEntrega;
     private Double raioMaximoEntregaKm;
+    private String horarioRetirada;
+    private String instrucoesRetirada;
     private Double volumeAgrupado = 0.0;
     private Long produtorId;
     private String produtorNome;
@@ -67,6 +70,14 @@ public class Lote {
         return taxaFixaEntrega;
     }
 
+    public String getModalidadeEntrega() {
+        return modalidadeEntrega;
+    }
+
+    public void setModalidadeEntrega(String modalidadeEntrega) {
+        this.modalidadeEntrega = modalidadeEntrega;
+    }
+
     public void setTaxaFixaEntrega(Double taxaFixaEntrega) {
         this.taxaFixaEntrega = taxaFixaEntrega;
     }
@@ -77,6 +88,22 @@ public class Lote {
 
     public void setRaioMaximoEntregaKm(Double raioMaximoEntregaKm) {
         this.raioMaximoEntregaKm = raioMaximoEntregaKm;
+    }
+
+    public String getHorarioRetirada() {
+        return horarioRetirada;
+    }
+
+    public void setHorarioRetirada(String horarioRetirada) {
+        this.horarioRetirada = horarioRetirada;
+    }
+
+    public String getInstrucoesRetirada() {
+        return instrucoesRetirada;
+    }
+
+    public void setInstrucoesRetirada(String instrucoesRetirada) {
+        this.instrucoesRetirada = instrucoesRetirada;
     }
 
     public Double getVolumeAgrupado() {

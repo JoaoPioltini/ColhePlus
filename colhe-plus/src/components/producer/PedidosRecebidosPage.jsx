@@ -12,9 +12,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { pedidoApi } from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
-import { Badge, EmptyState, Spinner, ErrorMessage } from "../common";
+import { Badge, Button, EmptyState, Input, Spinner, ErrorMessage, Toast } from "../common";
 
-function PedidoRow({ pedido }) {
+function PedidoRow({ pedido, codigo, onCodigoChange, onConfirmar, confirming }) {
   return (
     <div className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
       <div className="flex flex-col gap-0.5">
@@ -39,6 +39,18 @@ function PedidoRow({ pedido }) {
         {pedido.status === "ACEITO" && (
           <p className="text-xs text-gray-500">Pedido confirmado</p>
         )}
+        {pedido.status === "ACEITO" && pedido.tipoEntrega === "RETIRADA" && (
+          <div className="w-44 flex flex-col gap-2">
+            <Input
+              placeholder="Código"
+              value={codigo || ""}
+              onChange={(e) => onCodigoChange(pedido.id, e.target.value)}
+            />
+            <Button size="sm" onClick={() => onConfirmar(pedido.id)} loading={confirming}>
+              Confirmar retirada
+            </Button>
+          </div>
+        )}
         {pedido.status === "RECUSADO" && (
           <p className="text-xs text-gray-500">Pedido rejeitado</p>
         )}
@@ -52,6 +64,9 @@ export function PedidosRecebidosPage() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [codigos, setCodigos] = useState({});
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
@@ -71,6 +86,25 @@ export function PedidosRecebidosPage() {
   useEffect(() => {
     fetchPedidos();
   }, [fetchPedidos]);
+
+  async function handleConfirmarRetirada(id) {
+    const codigo = codigos[id]?.trim();
+    if (!codigo) {
+      setToast({ message: "Informe o código de retirada.", type: "error" });
+      return;
+    }
+    setConfirmingId(id);
+    try {
+      const pedido = await pedidoApi.confirmarRetirada(id, codigo, token);
+      setPedidos((lista) => lista.map((item) => item.id === pedido.id ? pedido : item));
+      setCodigos((atuais) => ({ ...atuais, [id]: "" }));
+      setToast({ message: "Retirada confirmada.", type: "success" });
+    } catch (err) {
+      setToast({ message: err.message || "Erro ao confirmar retirada.", type: "error" });
+    } finally {
+      setConfirmingId(null);
+    }
+  }
 
   return (
     <div className="p-6 flex flex-col gap-6 max-w-3xl">
@@ -94,7 +128,14 @@ export function PedidosRecebidosPage() {
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 px-5">
           {pedidos.map((pedido) => (
-            <PedidoRow key={pedido.id} pedido={pedido} />
+            <PedidoRow
+              key={pedido.id}
+              pedido={pedido}
+              codigo={codigos[pedido.id]}
+              onCodigoChange={(id, codigo) => setCodigos((atuais) => ({ ...atuais, [id]: codigo }))}
+              onConfirmar={handleConfirmarRetirada}
+              confirming={confirmingId === pedido.id}
+            />
           ))}
 
           {/* Empty footer */}
@@ -103,6 +144,8 @@ export function PedidosRecebidosPage() {
           </div>
         </div>
       )}
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -26,6 +26,12 @@ public class Pedido {
     private String tipoEntrega;
     private Double latitudeEntrega;
     private Double longitudeEntrega;
+    private Double distanciaKm;
+    private Double latitudeRetirada;
+    private Double longitudeRetirada;
+    private String horarioRetirada;
+    private String instrucoesRetirada;
+    private String codigoRetirada;
     private String status = "PENDENTE";
 
     public Long getId() {
@@ -106,6 +112,54 @@ public class Pedido {
 
     public void setLongitudeEntrega(Double longitudeEntrega) {
         this.longitudeEntrega = longitudeEntrega;
+    }
+
+    public Double getDistanciaKm() {
+        return distanciaKm;
+    }
+
+    public void setDistanciaKm(Double distanciaKm) {
+        this.distanciaKm = distanciaKm;
+    }
+
+    public Double getLatitudeRetirada() {
+        return latitudeRetirada;
+    }
+
+    public void setLatitudeRetirada(Double latitudeRetirada) {
+        this.latitudeRetirada = latitudeRetirada;
+    }
+
+    public Double getLongitudeRetirada() {
+        return longitudeRetirada;
+    }
+
+    public void setLongitudeRetirada(Double longitudeRetirada) {
+        this.longitudeRetirada = longitudeRetirada;
+    }
+
+    public String getHorarioRetirada() {
+        return horarioRetirada;
+    }
+
+    public void setHorarioRetirada(String horarioRetirada) {
+        this.horarioRetirada = horarioRetirada;
+    }
+
+    public String getInstrucoesRetirada() {
+        return instrucoesRetirada;
+    }
+
+    public void setInstrucoesRetirada(String instrucoesRetirada) {
+        this.instrucoesRetirada = instrucoesRetirada;
+    }
+
+    public String getCodigoRetirada() {
+        return codigoRetirada;
+    }
+
+    public void setCodigoRetirada(String codigoRetirada) {
+        this.codigoRetirada = codigoRetirada;
     }
 
     public String getStatus() {
