@@ -36,6 +36,19 @@ The system connects producers and buyers, allowing multiple purchase requests to
 - Cloud: AWS (or equivalent)  
 - CI/CD: GitHub Actions with Maven and automated testing  
 
+## Local Database
+
+Start PostgreSQL before running the Spring Boot API locally:
+
+```bash
+docker compose up -d postgres
+mvn spring-boot:run
+```
+
+The default local datasource is `jdbc:postgresql://localhost:5432/colheplus` with user and password
+`colheplus`. Override `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and
+`SPRING_DATASOURCE_PASSWORD` when using another PostgreSQL instance.
+
 ---
 
 ## 🔁 CI/CD Pipeline
