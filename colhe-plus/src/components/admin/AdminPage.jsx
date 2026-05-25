@@ -50,35 +50,65 @@ function UsuarioRow({ usuario, onExcluir }) {
   );
 }
 
+function LoteRow({ lote, onDesativar }) {
+  const podeDesativar = lote.status !== "DESATIVADO";
+
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0 gap-4">
+      <div>
+        <p className="font-semibold text-gray-900 text-sm">{lote.produto}</p>
+        <p className="text-xs text-gray-500">
+          Produtor: {lote.produtorNome || "Sem produtor"} · {lote.volumeDisponivelKg} kg
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <Badge status={lote.status} />
+        <Button
+          variant="warning"
+          size="sm"
+          onClick={() => onDesativar(lote.id)}
+          disabled={!podeDesativar}
+        >
+          Desativar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function AdminPage() {
   const { token } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
+  const [lotes, setLotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toast, setToast] = useState(null);
-  const [tab, setTab] = useState("usuarios"); // "usuarios"
 
   const showToast = (msg, type = "success") => {
     setToast({ message: msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchUsuarios = useCallback(async () => {
+  const fetchDados = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await adminApi.listarUsuarios(token);
-      setUsuarios(data);
+      const [usuariosData, lotesData] = await Promise.all([
+        adminApi.listarUsuarios(token),
+        adminApi.listarLotes(token),
+      ]);
+      setUsuarios(usuariosData);
+      setLotes(lotesData);
     } catch (err) {
-      setError(err.message || "Erro ao carregar usuários.");
+      setError(err.message || "Erro ao carregar dados administrativos.");
     } finally {
       setLoading(false);
     }
   }, [token]);
 
   useEffect(() => {
-    fetchUsuarios();
-  }, [fetchUsuarios]);
+    fetchDados();
+  }, [fetchDados]);
 
   async function handleExcluirUsuario(id) {
     if (!confirm("Excluir este usuário permanentemente?")) return;
@@ -88,6 +118,17 @@ export function AdminPage() {
       showToast("Usuário excluído.");
     } catch (err) {
       showToast(err.message || "Erro ao excluir usuário.", "error");
+    }
+  }
+
+  async function handleDesativarLote(id) {
+    if (!confirm("Desativar este lote?")) return;
+    try {
+      const lote = await adminApi.desativarLote(id, token);
+      setLotes((lista) => lista.map((item) => item.id === lote.id ? lote : item));
+      showToast("Lote desativado.");
+    } catch (err) {
+      showToast(err.message || "Erro ao desativar lote.", "error");
     }
   }
 
@@ -130,6 +171,21 @@ export function AdminPage() {
           <div>
             {usuarios.map((u) => (
               <UsuarioRow key={u.id} usuario={u} onExcluir={handleExcluirUsuario} />
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Lotes Cadastrados</h2>
+        {loading ? (
+          <Spinner />
+        ) : lotes.length === 0 ? (
+          <EmptyState icon="📦" title="Nenhum lote cadastrado" />
+        ) : (
+          <div>
+            {lotes.map((lote) => (
+              <LoteRow key={lote.id} lote={lote} onDesativar={handleDesativarLote} />
             ))}
           </div>
         )}

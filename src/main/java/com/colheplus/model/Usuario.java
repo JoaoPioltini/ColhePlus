@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.LocalDateTime;
 
 @Entity
 public class Usuario {
@@ -25,6 +26,8 @@ public class Usuario {
 
     private String papel;
     private Boolean termoAceito = false;
+    private LocalDateTime dataHoraAceiteTermo;
+    private String versaoTermoAceita;
     private Boolean ativo = true;
     private Double latitude;
     private Double longitude;
@@ -78,6 +81,22 @@ public class Usuario {
 
     public void setTermoAceito(Boolean termoAceito) {
         this.termoAceito = termoAceito;
+    }
+
+    public LocalDateTime getDataHoraAceiteTermo() {
+        return dataHoraAceiteTermo;
+    }
+
+    public void setDataHoraAceiteTermo(LocalDateTime dataHoraAceiteTermo) {
+        this.dataHoraAceiteTermo = dataHoraAceiteTermo;
+    }
+
+    public String getVersaoTermoAceita() {
+        return versaoTermoAceita;
+    }
+
+    public void setVersaoTermoAceita(String versaoTermoAceita) {
+        this.versaoTermoAceita = versaoTermoAceita;
     }
 
     public Boolean getAtivo() {

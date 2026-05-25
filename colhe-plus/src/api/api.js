@@ -80,6 +80,12 @@ export const authApi = {
 
   /** POST /auth/aceite → marca termoAceito = true */
   aceitarTermo: (token) => request("POST", "/auth/aceite", null, token),
+
+  /** GET /usuarios/me → perfil do usuário logado */
+  getPerfil: (token) => request("GET", "/usuarios/me", null, token),
+
+  /** PUT /usuarios/me → atualiza perfil */
+  atualizarPerfil: (dados, token) => request("PUT", "/usuarios/me", dados, token),
 };
 
 // ─── Lotes ────────────────────────────────────────────────────────────────────
@@ -112,6 +118,9 @@ export const pedidoApi = {
 
   /** PATCH /pedidos/:id/cancelar */
   cancelar: (id, token) => request("PATCH", `/pedidos/${id}/cancelar`, null, token),
+
+  /** PATCH /pedidos/:id/retirada */
+  confirmarRetirada: (id, codigo, token) => request("PATCH", `/pedidos/${id}/retirada`, { codigo }, token),
 };
 
 // ─── Admin ────────────────────────────────────────────────────────────────────
@@ -119,6 +128,9 @@ export const pedidoApi = {
 export const adminApi = {
   /** GET /admin/usuarios */
   listarUsuarios: (token) => request("GET", "/admin/usuarios", null, token),
+
+  /** GET /admin/lotes */
+  listarLotes: (token) => request("GET", "/admin/lotes", null, token),
 
   /** DELETE /admin/usuarios/:id */
   excluirUsuario: (id, token) => request("DELETE", `/admin/usuarios/${id}`, null, token),

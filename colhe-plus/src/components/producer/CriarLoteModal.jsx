@@ -20,10 +20,29 @@ const initialForm = {
   volumeDisponivelKg: "",
   volumeMinimoViavelKg: "",
   precoPorKg: "",
+  horarioRetirada: "",
+  instrucoesRetirada: "",
   ofereceEntrega: false,
   taxaFixaEntrega: "",
   raioMaximoEntregaKm: "",
 };
+
+const produtosSugeridos = [
+  "Abacate",
+  "Alface",
+  "Batata",
+  "Cebola",
+  "Cenoura",
+  "Feijão",
+  "Laranja",
+  "Mandioca",
+  "Milho",
+  "Tomate",
+];
+
+function produtoValido(produto) {
+  return /\p{L}/u.test(produto);
+}
 
 export function CriarLoteModal({ isOpen, onClose, onSuccess }) {
   const { token } = useAuth();
@@ -50,6 +69,10 @@ export function CriarLoteModal({ isOpen, onClose, onSuccess }) {
       setError("Preencha todos os campos obrigatórios.");
       return;
     }
+    if (!produtoValido(form.produto)) {
+      setError("Produto deve conter letras.");
+      return;
+    }
     if (form.ofereceEntrega && (!form.taxaFixaEntrega || !form.raioMaximoEntregaKm)) {
       setError("Informe taxa e raio máximo de entrega.");
       return;
@@ -64,6 +87,9 @@ export function CriarLoteModal({ isOpen, onClose, onSuccess }) {
       volumeDisponivelKg: parseFloat(form.volumeDisponivelKg),
       volumeMinimoViavelKg: parseFloat(form.volumeMinimoViavelKg),
       precoPorKg: parseFloat(form.precoPorKg),
+      horarioRetirada: form.horarioRetirada || "A combinar com o produtor",
+      instrucoesRetirada: form.instrucoesRetirada,
+      modalidadeEntrega: form.ofereceEntrega ? "RETIRADA_E_ENTREGA" : "RETIRADA",
       taxaFixaEntrega: form.ofereceEntrega ? parseFloat(form.taxaFixaEntrega) : null,
       raioMaximoEntregaKm: form.ofereceEntrega ? parseFloat(form.raioMaximoEntregaKm) : null,
     };
@@ -88,8 +114,14 @@ export function CriarLoteModal({ isOpen, onClose, onSuccess }) {
           placeholder="ex: Milho"
           value={form.produto}
           onChange={(e) => set("produto", e.target.value)}
+          list="produtos-sugeridos"
           required
         />
+        <datalist id="produtos-sugeridos">
+          {produtosSugeridos.map((produto) => (
+            <option key={produto} value={produto} />
+          ))}
+        </datalist>
 
         <div className="grid grid-cols-2 gap-3">
           <Input
@@ -118,6 +150,21 @@ export function CriarLoteModal({ isOpen, onClose, onSuccess }) {
           onChange={(e) => set("precoPorKg", e.target.value)}
           required
         />
+
+        <div className="bg-amber-50 rounded-xl p-4 flex flex-col gap-3">
+          <Input
+            label="Horário para retirada"
+            placeholder="ex: seg a sex, 08h às 17h"
+            value={form.horarioRetirada}
+            onChange={(e) => set("horarioRetirada", e.target.value)}
+          />
+          <Input
+            label="Instruções de retirada"
+            placeholder="ex: retirar no portão principal"
+            value={form.instrucoesRetirada}
+            onChange={(e) => set("instrucoesRetirada", e.target.value)}
+          />
+        </div>
 
         {/* Seção de entrega */}
         <div className="bg-green-50 rounded-xl p-4 flex flex-col gap-3">

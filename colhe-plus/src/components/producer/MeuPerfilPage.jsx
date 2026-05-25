@@ -5,7 +5,8 @@
  * Sugestão: PUT /usuarios/perfil → atualiza nome, senha, localização
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { authApi, loteApi, pedidoApi } from "../../api/api";
 import { useAuth } from "../../context/AuthContext";
 import { Button, Input, Card, Toast, ErrorMessage } from "../common";
 
@@ -22,6 +23,75 @@ export function MeuPerfilPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState({
+    lotesCriados: null,
+    pedidosAtendidos: null,
+  });
+  const [statsError, setStatsError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function fetchStats() {
+      setStatsError("");
+      try {
+        const [lotes, pedidos] = await Promise.all([
+          loteApi.listarMeus(token),
+          pedidoApi.listar(token),
+        ]);
+        if (!active) return;
+
+        setStats({
+          lotesCriados: lotes.length,
+          pedidosAtendidos: pedidos.filter((pedido) =>
+            pedido.status === "ACEITO" || pedido.status === "RETIRADO"
+          ).length,
+        });
+      } catch (err) {
+        if (active) {
+          setStatsError(err.message || "Erro ao carregar estatísticas.");
+        }
+      }
+    }
+
+    if (token && usuario?.papel === "PRODUTOR") {
+      fetchStats();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [token, usuario?.papel]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function fetchPerfil() {
+      try {
+        const perfil = await authApi.getPerfil(token);
+        if (!active) return;
+
+        setForm((dados) => ({
+          ...dados,
+          nome: perfil.nome || "",
+          email: perfil.email || "",
+          latitude: perfil.latitude ?? "",
+          longitude: perfil.longitude ?? "",
+        }));
+        atualizarUsuario(perfil);
+      } catch (err) {
+        if (active) {
+          setError(err.message || "Erro ao carregar perfil.");
+        }
+      }
+    }
+
+    if (token) fetchPerfil();
+
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -31,13 +101,14 @@ export function MeuPerfilPage() {
     setError("");
     setLoading(true);
     try {
-      // INTEGRAÇÃO: substituir pela chamada real ao endpoint de perfil
-      // const updated = await request("PUT", "/usuarios/perfil", form, token);
-      // atualizarUsuario(updated);
-
-      // Mock temporário:
-      await new Promise((r) => setTimeout(r, 800));
-      atualizarUsuario({ nome: form.nome });
+      const updated = await authApi.atualizarPerfil({
+        nome: form.nome,
+        senhaHash: form.senhaHash,
+        latitude: form.latitude === "" ? null : parseFloat(form.latitude),
+        longitude: form.longitude === "" ? null : parseFloat(form.longitude),
+      }, token);
+      atualizarUsuario(updated);
+      setForm((dados) => ({ ...dados, senhaHash: "" }));
       setToast({ message: "Perfil atualizado com sucesso!", type: "success" });
     } catch (err) {
       setError(err.message || "Erro ao salvar alterações.");
@@ -116,14 +187,14 @@ export function MeuPerfilPage() {
           <Card className="p-4">
             <p className="text-xs text-gray-500 mb-1">Lotes Criados</p>
             <p className="text-2xl font-bold text-gray-900">
-              {/* INTEGRAÇÃO: buscar do backend */}
-              —
+              {stats.lotesCriados ?? "—"}
             </p>
           </Card>
           <Card className="p-4">
             <p className="text-xs text-gray-500 mb-1">Pedidos Atendidos</p>
-            <p className="text-2xl font-bold text-gray-900">—</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.pedidosAtendidos ?? "—"}</p>
           </Card>
+          <ErrorMessage message={statsError} />
           <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
             <p className="text-sm text-green-800 font-medium">
               Perfil completo aumenta a confiança dos compradores 🌱
