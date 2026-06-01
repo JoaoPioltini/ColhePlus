@@ -29,6 +29,7 @@ colhe-plus/dist/
 
 # Dependencies
 colhe-plus/node_modules/
+colhe-plus/node/
 
 # OS files
 .DS_Store

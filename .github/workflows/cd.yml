@@ -33,3 +33,9 @@ jobs:
 
             nohup java -jar target/colheplus-1.0.jar > app.log 2>&1 &
             echo $! > app.pid
+
+            sleep 10
+            if ! kill -0 "$(cat app.pid)" 2>/dev/null; then
+              cat app.log
+              exit 1
+            fi
