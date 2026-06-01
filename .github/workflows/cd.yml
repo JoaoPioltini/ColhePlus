@@ -29,6 +29,15 @@ jobs:
             git reset --hard origin/main
             git clean -fdx
 
+            docker compose up -d postgres
+            for i in $(seq 1 30); do
+              if docker compose exec -T postgres pg_isready -U colheplus -d colheplus; then
+                break
+              fi
+              sleep 2
+            done
+            docker compose exec -T postgres pg_isready -U colheplus -d colheplus
+
             mvn clean package -DskipTests
 
             nohup java -jar target/colheplus-1.0.jar > app.log 2>&1 &
