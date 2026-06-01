@@ -16,13 +16,20 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
           script: |
             cd ColhePlus
 
-            git pull origin main
+            if [ -f app.pid ]; then
+              kill "$(cat app.pid)" || true
+              rm -f app.pid
+            fi
+
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fdx
 
             mvn clean package -DskipTests
 
-            pkill -f 'java -jar' || true
-
-            nohup java -jar target/*.jar > app.log 2>&1 &
+            nohup java -jar target/colheplus-1.0.jar > app.log 2>&1 &
+            echo $! > app.pid

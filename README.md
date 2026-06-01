@@ -215,6 +215,20 @@ A API será executada em:
 http://localhost:8080
 ```
 
+## Local Frontend
+
+Run the React SPA from the `colhe-plus` directory after starting the backend API:
+
+```bash
+cd colhe-plus
+npm install
+npm run dev
+```
+
+By default, Vite serves the frontend at `http://localhost:5173`. Set
+`VITE_API_URL=http://localhost:8080` in `colhe-plus/.env.local` when the backend
+is running on the default local port.
+
 ---
 
 ## 4. Rodar o Frontend
