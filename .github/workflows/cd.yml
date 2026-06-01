@@ -29,14 +29,26 @@ jobs:
             git reset --hard origin/main
             git clean -fdx
 
-            docker compose up -d postgres
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get update
+              sudo apt-get install -y docker.io docker-compose-v2 || sudo apt-get install -y docker.io docker-compose-plugin || sudo apt-get install -y docker.io docker-compose
+            fi
+            sudo systemctl enable --now docker
+
+            if sudo docker compose version >/dev/null 2>&1; then
+              COMPOSE="sudo docker compose"
+            else
+              COMPOSE="sudo docker-compose"
+            fi
+
+            $COMPOSE up -d postgres
             for i in $(seq 1 30); do
-              if docker compose exec -T postgres pg_isready -U colheplus -d colheplus; then
+              if $COMPOSE exec -T postgres pg_isready -U colheplus -d colheplus; then
                 break
               fi
               sleep 2
             done
-            docker compose exec -T postgres pg_isready -U colheplus -d colheplus
+            $COMPOSE exec -T postgres pg_isready -U colheplus -d colheplus
 
             mvn clean package -DskipTests
 
